@@ -30,7 +30,17 @@ def get_complement(nucleotide):
     >>> get_complement('C')
     'G'
     """
-    # TODO: implement this
+    if nucleotide == 'A':
+        return 'T'
+    elif nucleotide == 'T':
+        return 'A'
+    elif nucleotide == 'C':
+        return 'G'
+    elif nucleotide == 'G':
+        return 'C'
+    else:
+        return 'Nuttin'
+
     pass
 
 
@@ -45,8 +55,10 @@ def get_reverse_complement(dna):
     >>> get_reverse_complement("CCGCGTTCA")
     'TGAACGCGG'
     """
-    # TODO: implement this
-    pass
+    rDna = ''
+    for i in range(len(dna)-1, -1, -1):
+        rDna = rDna + get_complement(dna[i])
+    return rDna
 
 
 def rest_of_ORF(dna):
@@ -62,11 +74,15 @@ def rest_of_ORF(dna):
     >>> rest_of_ORF("ATGAGATAGG")
     'ATGAGA'
     """
-    # TODO: implement this
-    pass
+    returnDna = ''
+    for i in range(0, len(dna), 3):
+        if aa_table[dna[i:i+3]] == '|':
+            break
+        returnDna = returnDna + dna[i:i+3]
+    return returnDna
 
 
-def find_all_ORFs_oneframe(dna):
+def find_all_ORFs_oneframe(dna, i):
     """ Finds all non-nested open reading frames in the given DNA
         sequence and returns them as a list.  This function should
         only find ORFs that are in the default frame of the sequence
@@ -76,11 +92,32 @@ def find_all_ORFs_oneframe(dna):
 
         dna: a DNA sequence
         returns: a list of non-nested ORFs
-    >>> find_all_ORFs_oneframe("ATGCATGAATGTAGATAGATGTGCCC")
+    >>> find_all_ORFs_oneframe("ATGCATGAATGTAGATAGATGTGCCC",0)
     ['ATGCATGAATGTAGA', 'ATGTGCCC']
     """
-    # TODO: implement this
-    pass
+
+    seq = []
+    temp = ''
+    reading = False
+    while True:
+
+        if aa_table[dna[i:i+3]] == 'M':
+            reading = True
+        elif aa_table[dna[i:i+3]] == '|' and reading:
+            reading = False
+            seq.append(temp)
+            temp = ''
+        if reading:
+            temp = temp + dna[i:i+3]
+
+        i = i + 3
+        if (len(dna) - 3) < i:
+            if reading:
+                temp = temp + dna[i:]
+                seq.append(temp)
+            break
+
+    return seq
 
 
 def find_all_ORFs(dna):
@@ -96,9 +133,10 @@ def find_all_ORFs(dna):
     >>> find_all_ORFs("ATGCATGAATGTAG")
     ['ATGCATGAATGTAG', 'ATGAATGTAG', 'ATG']
     """
-    # TODO: implement this
-    pass
-
+    seq = []
+    for i in range(3):
+        seq = seq + find_all_ORFs_oneframe(dna, i)
+    return seq
 
 def find_all_ORFs_both_strands(dna):
     """ Finds all non-nested open reading frames in the given DNA sequence on both
@@ -109,8 +147,10 @@ def find_all_ORFs_both_strands(dna):
     >>> find_all_ORFs_both_strands("ATGCGAATGTAGCATCAAA")
     ['ATGCGAATG', 'ATGCTACATTCGCAT']
     """
-    # TODO: implement this
-    pass
+    seq = []
+    seq = seq + find_all_ORFs(dna)
+    seq = seq + find_all_ORFs(get_reverse_complement(dna))
+    return seq
 
 
 def longest_ORF(dna):
@@ -161,6 +201,7 @@ def gene_finder(dna):
     # TODO: implement this
     pass
 
+
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.run_docstring_examples(find_all_ORFs_both_strands, globals(), verbose=True)
